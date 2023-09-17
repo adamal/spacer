@@ -4,7 +4,14 @@ function calculatePositions() {
     var sectionWidth = parseFloat(document.getElementById("sectionWidth").value);
     var boardWidth = parseFloat(document.getElementById("boardWidth").value);
     var numberOfBoards = parseInt(document.getElementById("numberOfBoards").value);
-    var numberOfSpaces = document.getElementById("numberOfSpaces").value;
+    var numberOfSpacesRadios = document.getElementsByName("numberOfSpaces");
+    var numberOfSpaces;
+    for (var i = 0; i < numberOfSpacesRadios.length; i++) {
+        if (numberOfSpacesRadios[i].checked) {
+            numberOfSpaces = numberOfSpacesRadios[i].value;
+            break;
+        }
+    }
 
     var spaces;
     var beginWithSpacing = false;
@@ -38,29 +45,29 @@ function calculatePositions() {
 }
 
 function renderResult(positions, spaceWidth) {
-     // Get the template content
-     const template = document.getElementById("result-template").content.cloneNode(true);
+    // Get the template content
+    const template = document.getElementById("result-template").content.cloneNode(true);
 
-     // Fill the template with data
-     template.querySelector(".spacing-width").textContent = spaceWidth.toFixed(0);
+    // Fill the template with data
+    template.querySelector(".spacing-width").textContent = spaceWidth.toFixed(0);
 
-     const positionsList = template.querySelector(".positions-list");
+    const positionsList = template.querySelector(".positions-list");
 
-     const isHorizontalLayout = false;
-     if (isHorizontalLayout) {
+    const isHorizontalLayout = false;
+    if (isHorizontalLayout) {
         positionsList.classList.add("flex", "space-x-4");
     } else {
         positionsList.classList.remove("flex", "space-x-4");
     }
-     
-     positions.forEach(pos => {
-         const li = document.createElement("li");
-         li.textContent = pos.toFixed(1);
-         positionsList.appendChild(li);
-     });
- 
-     // Render the template into the result div
-     const resultDiv = document.getElementById("result");
-     resultDiv.innerHTML = ''; // Clear previous content
-     resultDiv.appendChild(template);
+
+    positions.forEach(pos => {
+        const li = document.createElement("li");
+        li.textContent = pos.toFixed(1);
+        positionsList.appendChild(li);
+    });
+
+    // Render the template into the result div
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = ''; // Clear previous content
+    resultDiv.appendChild(template);
 }
