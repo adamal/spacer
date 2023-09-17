@@ -29,17 +29,17 @@ function calculatePositions() {
     }
 
     var totalSpacingWidth = sectionWidth - (numberOfBoards * boardWidth);
-    var spaceWidthMm = totalSpacingWidth / spaces * 10;
+    var spaceWidth = totalSpacingWidth / spaces;
 
     var positions = [];
-    var position = beginWithSpacing ? spaceWidthMm : 0;
+    var position = beginWithSpacing ? spaceWidth : 0;
 
     for (var i = 0; i < numberOfBoards; i++) {
         positions.push(position);
-        position += boardWidth + spaceWidthMm;
+        position += boardWidth + spaceWidth;
     }
 
-    renderResult(positions, spaceWidthMm)
+    renderResult(positions, spaceWidth)
     // var resultDiv = document.getElementById("result");
     // resultDiv.innerHTML = "<strong>Spacing width: </strong>" + spaceWidth.toFixed(2) + " cm<br><strong>Positions from edge (in cm):</strong><br>" + positions.map(x => x.toFixed(2)).join("<br>");
 }
@@ -48,8 +48,8 @@ function renderResult(positions, spaceWidth) {
     // Get the template content
     const template = document.getElementById("result-template").content.cloneNode(true);
 
-    // Fill the template with data
-    template.querySelector(".spacing-width").textContent = spaceWidth.toFixed(0);
+    // Space width in mm.
+    template.querySelector(".spacing-width").textContent = (spaceWidth*10).toFixed(0);
 
     const positionsList = template.querySelector(".positions-list");
 
