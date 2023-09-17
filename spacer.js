@@ -12,6 +12,7 @@ function calculatePositions() {
             break;
         }
     }
+    var offset = parseFloat(document.getElementById("offset").value);
 
     var spaces;
     var beginWithSpacing = false;
@@ -38,6 +39,8 @@ function calculatePositions() {
         positions.push(position);
         position += boardWidth + spaceWidth;
     }
+
+    positions = positions.map(p => p + offset);
 
     renderResult(positions, spaceWidth)
     // var resultDiv = document.getElementById("result");
