@@ -1,145 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
     <title>Board Position Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+        }
+
+        .input-container {
+            margin-bottom: 10px;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+    </style>
 </head>
-
-<body class="bg-gray-100">
-
-    <div class="max-w-2xl mx-auto p-4">
-
-        <div class="flex mb-4">
-            <label for="sectionWidth" class="w-1/2 pr-2">Section width (cm):</label>
-            <input type="number" id="sectionWidth" class="w-1/2 border rounded p-1" onchange="calculateBoardPositions()" />
-        </div>
-
-        <div class="flex mb-4">
-            <label for="boardWidth" class="w-1/2 pr-2">Board width (cm):</label>
-            <input type="number" id="boardWidth" value="10" class="w-1/2 border rounded p-1" onchange="calculateBoardPositions()" />
-        </div>
-
-        <div class="flex mb-4">
-            <label for="idealSpacing" class="w-1/2 pr-2">Ideal spacing (mm):</label>
-            <input type="number" id="idealSpacing" value="5" class="w-1/2 border rounded p-1" onchange="calculateBoardPositions()" />
-        </div>
-
-        <div class="flex mb-4">
-            <label class="w-1/2 pr-2">Number of spaces:</label>
-            <div class="space-button-container w-1/2 flex">
-                <button class="space-button w-1/3 p-2 border rounded text-center active" onclick="setActiveSpaces('plusOne')">+1</button>
-                <button class="space-button w-1/3 p-2 border rounded text-center" onclick="setActiveSpaces('equal')">0</button>
-                <button class="space-button w-1/3 p-2 border rounded text-center" onclick="setActiveSpaces('minusOne')">-1</button>
-            </div>
-        </div>
-
-        <div class="flex mb-4">
-            <label for="numberOfBoards" class="w-1/2 pr-2">Number of boards:</label>
-            <input type="number" id="numberOfBoards" class="w-1/2 border rounded p-1" onchange="setNumberOfBoardsManually()" />
-        </div>
-
-        <div id="result" class="mb-4"></div>
-
-        <div id="visual" class="flex"></div>
+<body>
+    <h1>Board Position Calculator</h1>
+    <div class="input-container">
+        <label for="sectionWidth">Section Width (in cm):</label>
+        <input type="number" id="sectionWidth">
     </div>
 
+    <div class="input-container">
+        <label for="boardWidth">Board Width (in cm):</label>
+        <input type="number" id="boardWidth">
+    </div>
+
+    <div class="input-container">
+        <label for="numberOfBoards">Number of Boards:</label>
+        <input type="number" id="numberOfBoards">
+    </div>
+
+    <div class="input-container">
+        <label for="numberOfSpaces">Number of Spaces:</label>
+        <select id="numberOfSpaces">
+            <option value="equal">Equal to Number of Boards</option>
+            <option value="plusOne">+1</option>
+            <option value="minusOne">-1</option>
+        </select>
+    </div>
+
+    <button onclick="calculatePositions()">Calculate Positions</button>
+
+    <div id="result"></div>
+
     <script>
-        let manualNumberOfBoards = false;
-        let activeSpaces = 'plusOne';
-        
-        document.addEventListener('DOMContentLoaded', function () {
-            calculateBoardPositions();
-        });
+        function calculatePositions() {
+            var sectionWidth = parseFloat(document.getElementById("sectionWidth").value);
+            var boardWidth = parseFloat(document.getElementById("boardWidth").value);
+            var numberOfBoards = parseInt(document.getElementById("numberOfBoards").value);
+            var numberOfSpaces = document.getElementById("numberOfSpaces").value;
 
-        function setNumberOfBoardsManually() {
-            manualNumberOfBoards = true;
-            calculateBoardPositions();
-        }
-
-        function setActiveSpaces(value) {
-            activeSpaces = value;
-            const buttons = document.querySelectorAll('.space-button');
-            buttons.forEach(button => button.classList.remove('active'));
-            if (value === 'plusOne') buttons[0].classList.add('active');
-            else if (value === 'equal') buttons[1].classList.add('active');
-            else if (value === 'minusOne') buttons[2].classList.add('active');
-            manualNumberOfBoards = false;
-            calculateBoardPositions();
-        }
-
-        function calculateBoardPositions() {
-            const sectionWidth = parseFloat(document.getElementById('sectionWidth').value) || 0;
-            const boardWidth = parseFloat(document.getElementById('boardWidth').value) || 0;
-            const idealSpacing = parseFloat(document.getElementById('idealSpacing').value) / 10 || 0.5; // converting to cm
-
-            let numberOfBoards = document.getElementById('numberOfBoards').value ? parseInt(document.getElementById('numberOfBoards').value) : null;
-
-            if (!manualNumberOfBoards || !numberOfBoards) {
-                numberOfBoards = Math.round((sectionWidth + idealSpacing) / (boardWidth + idealSpacing));
+            var spaces;
+            var beginWithSpacing = false;
+            switch (numberOfSpaces) {
+                case "plusOne":
+                    spaces = numberOfBoards + 1;
+                    beginWithSpacing = true;
+                    break;
+                case "minusOne":
+                    spaces = numberOfBoards - 1;
+                    break;
+                default:
+                    spaces = numberOfBoards;
+                    break;
             }
 
-            document.getElementById('numberOfBoards').value = numberOfBoards;
+            var totalSpacingWidth = sectionWidth - (numberOfBoards * boardWidth);
+            var spaceWidth = totalSpacingWidth / spaces;
 
-            const numSpaces = activeSpaces === 'plusOne' ? numberOfBoards + 1 : (activeSpaces === 'equal' ? numberOfBoards : numberOfBoards - 1);
-            const totalSpacingWidth = sectionWidth - (numberOfBoards * boardWidth);
-            const spacingWidth = totalSpacingWidth / numSpaces;
+            var positions = [];
+            var position = beginWithSpacing ? spaceWidth : 0;
 
-            let positions = '';
-            let totalWidth = 0;
-            for (let i = 0; i < numberOfBoards; i++) {
-                if (i < numberOfBoards || activeSpaces === 'equal' || activeSpaces === 'plusOne') {
-                    totalWidth += spacingWidth;
-                    positions += (totalWidth).toFixed(1) + ' cm, ';
-                }
-                totalWidth += boardWidth;
-                positions += (totalWidth).toFixed(1) + ' cm, ';
+            for (var i = 0; i < numberOfBoards; i++) {
+                positions.push(position);
+                position += boardWidth + spaceWidth;
             }
 
-            const result = `
-            <div>Spacing width: ${(spacingWidth * 10).toFixed(1)} mm</div>
-            <div>Positions from the edge: ${positions.slice(0, -2)}</div>
-            <div>Closest board count for ideal spacing: ${numberOfBoards}</div>
-            <div>Actual spacing for closest board count: ${(spacingWidth * 10).toFixed(1)} mm</div>
-            `;
-
-            document.getElementById('result').innerHTML = result;
-
-            // Visual representation
-            const visual = document.getElementById('visual');
-            visual.innerHTML = '';
-
-            if (activeSpaces === 'plusOne') {
-                const space = document.createElement('div');
-                space.style.width = `${spacingWidth * 10}px`;
-                space.style.height = '20px';
-                space.style.backgroundColor = 'white';
-                space.style.border = '1px solid gray';
-                visual.appendChild(space);
-            }
-
-            for (let i = 0; i < numberOfBoards; i++) {
-                const board = document.createElement('div');
-                board.style.width = `${boardWidth * 10}px`;
-                board.style.height = '20px';
-                board.style.backgroundColor = 'brown';
-                board.style.border = '1px solid gray';
-                visual.appendChild(board);
-
-                if (i < numberOfBoards || activeSpaces === 'equal' || activeSpaces === 'plusOne') {
-                    const space = document.createElement('div');
-                    space.style.width = `${spacingWidth * 10}px`;
-                    space.style.height = '20px';
-                    space.style.backgroundColor = 'white';
-                    space.style.border = '1px solid gray';
-                    visual.appendChild(space);
-                }
-            }
+            var resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "<strong>Spacing width: </strong>" + spaceWidth.toFixed(2) + " cm<br><strong>Positions from edge (in cm):</strong><br>" + positions.map(x => x.toFixed(2)).join("<br>");
         }
     </script>
 </body>
-
 </html>
