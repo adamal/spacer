@@ -5,91 +5,40 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board Position Calculator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
-        }
-
-        .input-container {
-            margin-bottom: 10px;
-        }
-
-        #result {
-            margin-top: 20px;
-        }
-
-        button {
-            margin-top: 10px;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="spacer.js" defer></script>
 </head>
-<body>
-    <h1>Board Position Calculator</h1>
-    <div class="input-container">
-        <label for="sectionWidth">Section Width (in cm):</label>
-        <input type="number" id="sectionWidth">
+<body class="bg-gray-100 font-sans p-6">
+    <h1 class="text-2xl font-bold mb-6">Board Position Calculator</h1>
+
+    <div class="mb-4">
+        <label for="sectionWidth" class="block text-sm font-bold mb-2">Section Width (in cm):</label>
+        <input type="number" id="sectionWidth" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 
-    <div class="input-container">
-        <label for="boardWidth">Board Width (in cm):</label>
-        <input type="number" id="boardWidth">
+    <div class="mb-4">
+        <label for="boardWidth" class="block text-sm font-bold mb-2">Board Width (in cm):</label>
+        <input type="number" id="boardWidth" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 
-    <div class="input-container">
-        <label for="numberOfBoards">Number of Boards:</label>
-        <input type="number" id="numberOfBoards">
+    <div class="mb-4">
+        <label for="numberOfBoards" class="block text-sm font-bold mb-2">Number of Boards:</label>
+        <input type="number" id="numberOfBoards" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 
-    <div class="input-container">
-        <label for="numberOfSpaces">Number of Spaces:</label>
-        <select id="numberOfSpaces">
+    <div class="mb-4">
+        <label for="numberOfSpaces" class="block text-sm font-bold mb-2">Number of Spaces:</label>
+        <select id="numberOfSpaces" class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500">
             <option value="equal">Equal to Number of Boards</option>
             <option value="plusOne">+1</option>
             <option value="minusOne">-1</option>
         </select>
     </div>
 
-    <button onclick="calculatePositions()">Calculate Positions</button>
+    <button onclick="calculatePositions()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline-blue">
+        Calculate Positions
+    </button>
 
-    <div id="result"></div>
-
-    <script>
-        function calculatePositions() {
-            var sectionWidth = parseFloat(document.getElementById("sectionWidth").value);
-            var boardWidth = parseFloat(document.getElementById("boardWidth").value);
-            var numberOfBoards = parseInt(document.getElementById("numberOfBoards").value);
-            var numberOfSpaces = document.getElementById("numberOfSpaces").value;
-
-            var spaces;
-            var beginWithSpacing = false;
-            switch (numberOfSpaces) {
-                case "plusOne":
-                    spaces = numberOfBoards + 1;
-                    beginWithSpacing = true;
-                    break;
-                case "minusOne":
-                    spaces = numberOfBoards - 1;
-                    break;
-                default:
-                    spaces = numberOfBoards;
-                    break;
-            }
-
-            var totalSpacingWidth = sectionWidth - (numberOfBoards * boardWidth);
-            var spaceWidth = totalSpacingWidth / spaces;
-
-            var positions = [];
-            var position = beginWithSpacing ? spaceWidth : 0;
-
-            for (var i = 0; i < numberOfBoards; i++) {
-                positions.push(position);
-                position += boardWidth + spaceWidth;
-            }
-
-            var resultDiv = document.getElementById("result");
-            resultDiv.innerHTML = "<strong>Spacing width: </strong>" + spaceWidth.toFixed(2) + " cm<br><strong>Positions from edge (in cm):</strong><br>" + positions.map(x => x.toFixed(2)).join("<br>");
-        }
-    </script>
+    <div id="result" class="mt-6"></div>
 </body>
 </html>
