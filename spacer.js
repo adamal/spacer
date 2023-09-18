@@ -104,7 +104,7 @@ function makeTable(tableData, labels) {
             body += `<td class="p-2 font-bold">${labels[row]}</td>`;
         }
         for (let col = 0; col < tableData.length; col++) {
-            body += `<td class="p-2">${tableData[col][row]}</td>`;
+            body += `<td class="p-2"><span class="p-2"><input type="checkbox"></span>${tableData[col][row]}</td>`;
         }
         body += "</tr>";
     }
@@ -117,16 +117,6 @@ function makeTable(tableData, labels) {
         </table>
     `;
 }
-
-// Example usage:
-const tableData = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-];
-const labels = ["A", "B", "C"];
-console.log(makeTable(tableData, labels));  // This will generate a table with column headers
-
 
 function transpose(a) {
     return Object.keys(a[0]).map(function(c) {
