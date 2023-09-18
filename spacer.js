@@ -61,42 +61,9 @@ function calculateLengths(first, last, nBoards) {
 }
 
 function renderResult(positions, spaceWidth, boardLengths) {
-    // const isHorizontalLayout = false;  // Toggle between true or false as desired
-    // const quantities = positions.map(pos => pos * 1.5);  // Mocking a second array of data
-
-    // // Generate content based on layout
-    // // const generateContent = (pos, quantity) => {
-    // //     if (isHorizontalLayout) {
-    // //         return `
-    // //             <div class="flex space-x-4">
-    // //                 <div>${pos.toFixed(1)}</div>
-    // //                 <div>${quantity.toFixed(1)}</div>
-    // //             </div>
-    // //         `;
-    // //     } else {
-    // //         return `
-    // //             <tr>
-    // //                 <td>${pos.toFixed(1)}</td>
-    // //                 <td>${quantity.toFixed(1)}</td>
-    // //             </tr>
-    // //         `;
-    // //     }
-    // };
-
-    // const generatedPositions = positions.map((pos, index) => 
-    //     generateContent(pos, quantities[index])
-    // ).join("");
-
-    // const wrapper = isHorizontalLayout ? "div" : "table";
-
     const dataTableVertical = [positions.map(p=>p.toFixed(1)), boardLengths.map(bl => bl.toFixed(1))];
-    const dataTableHorizontal = transpose(dataTableVertical);
+    // const dataTableHorizontal = transpose(dataTableVertical);
     const htmlTable = makeTable(dataTableVertical, ["left edge", "length, long edge"]);
-    
-    // <div class="mt-2 font-bold">${isHorizontalLayout ? "Positions and Quantities:" : "Positions from edge (in cm) and Quantities:"}</div>
-    // <${wrapper} class="mt-2 positions-container">
-    //     ${generatedPositions}
-    // </${wrapper}>
     // Set up the final output
     const resultHTML = `
         <div class="mt-4 text-left">
