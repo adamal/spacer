@@ -49,6 +49,36 @@ function addToHistory(history, entry, max = 10) {
     return [entry, ...filtered].slice(0, max);
 }
 
+// --- Marking mode state ---
+// state shape: { index: number, total: number }
+function markingNext(state) {
+    return { ...state, index: Math.min(state.index + 1, state.total - 1) };
+}
+
+function markingBack(state) {
+    return { ...state, index: Math.max(state.index - 1, 0) };
+}
+
+// Map a heard transcript to a marking command. Returns one of:
+// "next" | "back" | "repeat" | "stop" | null
+function parseVoiceCommand(transcript) {
+    if (!transcript) return null;
+    const t = transcript.toLowerCase().trim();
+    // order matters: check more specific phrases first
+    if (/\b(stop|exit|quit|cancel|done)\b/.test(t)) return "stop";
+    if (/\b(repeat|again|say again)\b/.test(t)) return "repeat";
+    if (/\b(back|previous|prev|undo)\b/.test(t)) return "back";
+    if (/\b(next|forward|ok|okay|got it|continue)\b/.test(t)) return "next";
+    return null;
+}
+
 if (typeof module !== "undefined" && module.exports) {
-    module.exports = { calculateSpacing, calculateLengths, addToHistory };
+    module.exports = {
+        calculateSpacing,
+        calculateLengths,
+        addToHistory,
+        markingNext,
+        markingBack,
+        parseVoiceCommand,
+    };
 }

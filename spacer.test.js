@@ -1,6 +1,6 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
-const { calculateSpacing, calculateLengths, addToHistory } = require("./calc");
+const { calculateSpacing, calculateLengths, addToHistory, markingNext, markingBack, parseVoiceCommand } = require("./calc");
 
 describe("calculateSpacing", () => {
     it("default spaces (equal to number of boards)", () => {
@@ -95,5 +95,69 @@ describe("addToHistory", () => {
         assert.equal(history.length, 10);
         assert.equal(history[0].inputs.sectionWidth, 12);
         assert.equal(history[9].inputs.sectionWidth, 3);
+    });
+});
+
+describe("markingNext / markingBack", () => {
+    it("next advances index", () => {
+        assert.deepEqual(markingNext({ index: 0, total: 5 }), { index: 1, total: 5 });
+    });
+
+    it("next clamps at last index", () => {
+        assert.deepEqual(markingNext({ index: 4, total: 5 }), { index: 4, total: 5 });
+    });
+
+    it("back decreases index", () => {
+        assert.deepEqual(markingBack({ index: 3, total: 5 }), { index: 2, total: 5 });
+    });
+
+    it("back clamps at zero", () => {
+        assert.deepEqual(markingBack({ index: 0, total: 5 }), { index: 0, total: 5 });
+    });
+
+    it("preserves additional state fields", () => {
+        const state = { index: 1, total: 5, foo: "bar" };
+        assert.equal(markingNext(state).foo, "bar");
+    });
+});
+
+describe("parseVoiceCommand", () => {
+    it("recognizes next variants", () => {
+        ["next", "Next please", "ok", "okay", "got it", "forward", "continue"].forEach(t => {
+            assert.equal(parseVoiceCommand(t), "next", `failed for: ${t}`);
+        });
+    });
+
+    it("recognizes back variants", () => {
+        ["back", "go back", "previous", "prev", "undo"].forEach(t => {
+            assert.equal(parseVoiceCommand(t), "back", `failed for: ${t}`);
+        });
+    });
+
+    it("recognizes repeat variants", () => {
+        ["repeat", "say again", "again please"].forEach(t => {
+            assert.equal(parseVoiceCommand(t), "repeat", `failed for: ${t}`);
+        });
+    });
+
+    it("recognizes stop variants", () => {
+        ["stop", "exit", "quit marking", "cancel", "done"].forEach(t => {
+            assert.equal(parseVoiceCommand(t), "stop", `failed for: ${t}`);
+        });
+    });
+
+    it("returns null for unrecognized input", () => {
+        ["", "hello world", "the quick brown fox"].forEach(t => {
+            assert.equal(parseVoiceCommand(t), null, `failed for: ${t}`);
+        });
+    });
+
+    it("handles null/undefined safely", () => {
+        assert.equal(parseVoiceCommand(null), null);
+        assert.equal(parseVoiceCommand(undefined), null);
+    });
+
+    it("stop takes priority over other words in same phrase", () => {
+        assert.equal(parseVoiceCommand("ok stop"), "stop");
     });
 });

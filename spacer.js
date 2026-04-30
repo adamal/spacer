@@ -7,10 +7,13 @@ function calculatePositions() {
         inputs.numberOfSpaces, inputs.offset);
     const boardLengths = calculateLengths(inputs.first, inputs.last, inputs.numberOfBoards);
 
+    lastResult = { positions, spaceWidth, boardLengths };
     renderResult(positions, spaceWidth, boardLengths);
     saveToHistory(inputs);
     renderHistory();
 }
+
+let lastResult = null;
 
 function readInputs() {
     let numberOfSpaces;
@@ -169,6 +172,10 @@ function renderResult(positions, spaceWidth, boardLengths) {
     const resultHTML = `
         <div class="mt-4 text-left">
             <div class="font-bold p-2">Spacing: <span>${spaceWidth.toFixed(0)}</span> mm</div>
+            <button onclick="startMarkingMode()" type="button"
+                class="my-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Start marking ▶
+            </button>
             ${htmlTable}
         </div>
     `;
@@ -222,3 +229,201 @@ function transpose(a) {
         return a.map(function(r) { return r[c]; });
     });
 }
+
+// --- Marking mode ---
+let markingState = null;
+
+// eslint-disable-next-line no-unused-vars
+function startMarkingMode() {
+    if (!lastResult || !lastResult.positions || lastResult.positions.length === 0) return;
+    markingState = { index: 0, total: lastResult.positions.length };
+    document.getElementById("markingOverlay").classList.remove("hidden");
+    setupVoiceToggleAvailability();
+    renderMarking();
+    speakCurrent();
+}
+
+// eslint-disable-next-line no-unused-vars
+function exitMarkingMode() {
+    document.getElementById("markingOverlay").classList.add("hidden");
+    stopVoiceRecognition();
+    cancelSpeech();
+    markingState = null;
+}
+
+// eslint-disable-next-line no-unused-vars
+function markingNextStep() {
+    if (!markingState) return;
+    const next = markingNext(markingState);
+    // If already at last and trying to advance, exit
+    if (next.index === markingState.index && markingState.index === markingState.total - 1) {
+        speak("Done");
+        setTimeout(exitMarkingMode, 800);
+        return;
+    }
+    markingState = next;
+    renderMarking();
+    speakCurrent();
+}
+
+// eslint-disable-next-line no-unused-vars
+function markingPrev() {
+    if (!markingState) return;
+    markingState = markingBack(markingState);
+    renderMarking();
+    speakCurrent();
+}
+
+// eslint-disable-next-line no-unused-vars
+function markingRepeat() {
+    speakCurrent();
+}
+
+function renderMarking() {
+    if (!markingState || !lastResult) return;
+    const i = markingState.index;
+    const pos = lastResult.positions[i];
+    const len = lastResult.boardLengths[i];
+    document.getElementById("markingPosition").textContent = pos.toFixed(0);
+    const lengthEl = document.getElementById("markingLength");
+    if (len !== undefined && !isNaN(len)) {
+        lengthEl.textContent = `Board length: ${len.toFixed(0)} mm`;
+        lengthEl.classList.remove("hidden");
+    } else {
+        lengthEl.textContent = "";
+        lengthEl.classList.add("hidden");
+    }
+    document.getElementById("markingProgress").textContent =
+        `Position ${i + 1} of ${markingState.total}`;
+}
+
+// --- Text to speech ---
+function cancelSpeech() {
+    if ("speechSynthesis" in window) {
+        try { speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+    }
+}
+
+function speak(text) {
+    if (!("speechSynthesis" in window)) return;
+    cancelSpeech();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.0;
+    speechSynthesis.speak(utter);
+}
+
+function speakCurrent() {
+    if (!markingState || !lastResult) return;
+    const pos = lastResult.positions[markingState.index];
+    speak(`${pos.toFixed(0)} millimeters`);
+}
+
+// --- Speech recognition (voice commands) ---
+let recognition = null;
+let voiceWanted = false;
+
+function getRecognitionCtor() {
+    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function setupVoiceToggleAvailability() {
+    const toggle = document.getElementById("voiceToggle");
+    const label = document.getElementById("voiceToggleLabel");
+    if (!toggle) return;
+    if (!getRecognitionCtor()) {
+        toggle.disabled = true;
+        toggle.checked = false;
+        label.title = "Voice recognition not supported in this browser";
+        label.classList.add("opacity-50", "cursor-not-allowed");
+    }
+}
+
+function setVoiceStatus(text) {
+    const el = document.getElementById("voiceStatus");
+    if (el) el.textContent = text;
+}
+
+function startVoiceRecognition() {
+    const Ctor = getRecognitionCtor();
+    if (!Ctor) return;
+    if (recognition) return;
+
+    voiceWanted = true;
+    recognition = new Ctor();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (!event.results[i].isFinal) continue;
+            const transcript = event.results[i][0].transcript;
+            const cmd = parseVoiceCommand(transcript);
+            setVoiceStatus(cmd ? `Heard: "${transcript.trim()}" → ${cmd}` : `Heard: "${transcript.trim()}"`);
+            if (cmd === "next") markingNextStep();
+            else if (cmd === "back") markingPrev();
+            else if (cmd === "repeat") markingRepeat();
+            else if (cmd === "stop") exitMarkingMode();
+        }
+    };
+
+    recognition.onerror = (e) => {
+        console.warn("Speech recognition error", e.error);
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+            voiceWanted = false;
+            const toggle = document.getElementById("voiceToggle");
+            if (toggle) toggle.checked = false;
+            setVoiceStatus("Microphone permission denied");
+        }
+    };
+
+    recognition.onend = () => {
+        // Browsers stop after silence; restart if user still wants it
+        if (voiceWanted && markingState) {
+            try { recognition.start(); } catch (e) { /* may throw if already starting */ }
+        } else {
+            recognition = null;
+            setVoiceStatus("");
+        }
+    };
+
+    try {
+        recognition.start();
+        setVoiceStatus("Listening… say next, back, repeat, or stop");
+    } catch (e) {
+        console.warn("Could not start recognition", e);
+    }
+}
+
+function stopVoiceRecognition() {
+    voiceWanted = false;
+    if (recognition) {
+        try { recognition.stop(); } catch (e) { /* ignore */ }
+    }
+    setVoiceStatus("");
+}
+
+function setupVoiceToggle() {
+    const toggle = document.getElementById("voiceToggle");
+    if (!toggle) return;
+    toggle.addEventListener("change", () => {
+        if (toggle.checked) startVoiceRecognition();
+        else stopVoiceRecognition();
+    });
+}
+
+document.addEventListener("DOMContentLoaded", setupVoiceToggle);
+
+// Keyboard shortcuts in marking mode
+document.addEventListener("keydown", (e) => {
+    if (!markingState) return;
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+        e.preventDefault(); markingNextStep();
+    } else if (e.key === "ArrowLeft") {
+        e.preventDefault(); markingPrev();
+    } else if (e.key.toLowerCase() === "r") {
+        e.preventDefault(); markingRepeat();
+    } else if (e.key === "Escape") {
+        e.preventDefault(); exitMarkingMode();
+    }
+});
