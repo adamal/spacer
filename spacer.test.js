@@ -1,6 +1,6 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
-const { calculateSpacing, calculateLengths } = require("./spacer");
+const { calculateSpacing, calculateLengths, addToHistory } = require("./calc");
 
 describe("calculateSpacing", () => {
     it("default spaces (equal to number of boards)", () => {
@@ -59,5 +59,41 @@ describe("calculateLengths", () => {
     it("decreasing lengths", () => {
         const lengths = calculateLengths(200, 100, 5);
         assert.deepEqual(lengths, [200, 175, 150, 125, 100]);
+    });
+});
+
+describe("addToHistory", () => {
+    const entry = (sectionWidth, ts) => ({ inputs: { sectionWidth, boardWidth: 10 }, ts });
+
+    it("prepends new entry to empty history", () => {
+        const result = addToHistory([], entry(100, 1));
+        assert.deepEqual(result, [entry(100, 1)]);
+    });
+
+    it("prepends new entry to existing history", () => {
+        const result = addToHistory([entry(100, 1)], entry(200, 2));
+        assert.deepEqual(result, [entry(200, 2), entry(100, 1)]);
+    });
+
+    it("dedupes entries with identical inputs (moves to top)", () => {
+        const history = [entry(100, 1), entry(200, 2)];
+        const result = addToHistory(history, entry(100, 3));
+        assert.deepEqual(result, [entry(100, 3), entry(200, 2)]);
+    });
+
+    it("caps history at max items", () => {
+        const history = [entry(1, 1), entry(2, 2), entry(3, 3)];
+        const result = addToHistory(history, entry(4, 4), 3);
+        assert.deepEqual(result, [entry(4, 4), entry(1, 1), entry(2, 2)]);
+    });
+
+    it("default max is 10", () => {
+        let history = [];
+        for (let i = 1; i <= 12; i++) {
+            history = addToHistory(history, entry(i, i));
+        }
+        assert.equal(history.length, 10);
+        assert.equal(history[0].inputs.sectionWidth, 12);
+        assert.equal(history[9].inputs.sectionWidth, 3);
     });
 });

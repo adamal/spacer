@@ -7,27 +7,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board spacer</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="calc.js" defer></script>
     <script src="spacer.js" defer></script>
 </head>
 
 <body class="bg-gray-100 font-sans p-6">
-    <h1 class="text-2xl font-bold mb-6">Board spacer</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Board spacer</h1>
+        <label class="inline-flex items-center cursor-pointer text-sm">
+            <input type="checkbox" id="keepAwakeToggle" class="form-checkbox h-4 w-4 text-blue-600">
+            <span class="ml-2">Keep awake</span>
+        </label>
+    </div>
 
     <div class="mb-4">
-        <label for="sectionWidth" class="block text-sm font-bold mb-2">Section Width [cm]:</label>
-        <input type="number" id="sectionWidth"
+        <label for="sectionWidth" class="block text-sm font-bold mb-2">Section Width [mm]:</label>
+        <input type="number" inputmode="numeric" id="sectionWidth"
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 
     <div class="mb-4">
-        <label for="boardWidth" class="block text-sm font-bold mb-2">Board Width [cm]:</label>
-        <input type="number" id="boardWidth" value="10"
+        <label for="boardWidth" class="block text-sm font-bold mb-2">Board Width [mm]:</label>
+        <input type="number" inputmode="numeric" id="boardWidth" value="100"
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 
     <div class="mb-4">
         <label for="numberOfBoards" class="block text-sm font-bold mb-2">Number of Boards:</label>
-        <input type="number" id="numberOfBoards"
+        <input type="number" inputmode="numeric" id="numberOfBoards"
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 
@@ -50,30 +57,39 @@
             </div>
         </div>
         <div>
-            <label class="block text-sm font-bold mb-2">Offset [cm]</label>
-            <input type="text" inputmode="numeric" id="offset" value="-2.5"
+            <label class="block text-sm font-bold mb-2">Offset [mm]</label>
+            <input type="number" inputmode="numeric" id="offset" value="-25"
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
     </div>
 
-    <label class="block text-sm font-bold mb-2">First and last board long-edge length [cm]:</label>
+    <label class="block text-sm font-bold mb-2">First and last board long-edge length [mm]:</label>
     <div class="mt-4 mb-4 grid grid-cols-2 gap-6">
         <div>
             <label class="block text-sm font-bold mb-2">First</label>
-            <input type="number" id="firstBoard" value=""
+            <input type="number" inputmode="numeric" id="firstBoard" value=""
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
         <div>
             <label class="block text-sm font-bold mb-2">Last</label>
-            <input type="number" id="lastBoard" value=""
+            <input type="number" inputmode="numeric" id="lastBoard" value=""
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
     </div>
 
-    <button onclick="calculatePositions()"
-        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ">
-        Calculate Positions
-    </button>
+    <div class="flex items-center gap-2 relative">
+        <button onclick="calculatePositions()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ">
+            Calculate Positions
+        </button>
+        <button onclick="toggleHistory()" type="button" title="History"
+            class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-3 rounded text-sm">
+            History
+        </button>
+        <div id="historyPanel"
+            class="hidden absolute left-0 top-full mt-1 bg-white border rounded shadow w-72 max-h-80 overflow-y-auto z-10">
+        </div>
+    </div>
 
     <div id="result" class="mt-6"></div>
 </body>
