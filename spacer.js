@@ -1,22 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-function calculatePositions() {
-    console.log("Function is being called");  // Added for debugging
-
-    var sectionWidth = parseFloat(document.getElementById("sectionWidth").value);
-    var boardWidth = parseFloat(document.getElementById("boardWidth").value);
-    var numberOfBoards = parseInt(document.getElementById("numberOfBoards").value);
-    var numberOfSpacesRadios = document.getElementsByName("numberOfSpaces");
-    var numberOfSpaces;
-    for (var i = 0; i < numberOfSpacesRadios.length; i++) {
-        if (numberOfSpacesRadios[i].checked) {
-            numberOfSpaces = numberOfSpacesRadios[i].value;
-            break;
-        }
-    }
-    var offset = parseFloat(document.getElementById("offset").value);
-    const first = parseFloat(document.getElementById("firstBoard").value);
-    const last = parseFloat(document.getElementById("lastBoard").value);
-
+function calculateSpacing(sectionWidth, boardWidth, numberOfBoards, numberOfSpaces, offset) {
     var spaces;
     var beginWithSpacing = false;
     switch (numberOfSpaces) {
@@ -43,9 +25,32 @@ function calculatePositions() {
         position += boardWidth + spaceWidth;
     }
 
-    const boardLengths = calculateLengths(first, last, numberOfBoards);
-
     positions = positions.map(p => p + offset);
+
+    return { positions, spaceWidth };
+}
+
+// eslint-disable-next-line no-unused-vars
+function calculatePositions() {
+    console.log("Function is being called");  // Added for debugging
+
+    var sectionWidth = parseFloat(document.getElementById("sectionWidth").value);
+    var boardWidth = parseFloat(document.getElementById("boardWidth").value);
+    var numberOfBoards = parseInt(document.getElementById("numberOfBoards").value);
+    var numberOfSpacesRadios = document.getElementsByName("numberOfSpaces");
+    var numberOfSpaces;
+    for (var i = 0; i < numberOfSpacesRadios.length; i++) {
+        if (numberOfSpacesRadios[i].checked) {
+            numberOfSpaces = numberOfSpacesRadios[i].value;
+            break;
+        }
+    }
+    var offset = parseFloat(document.getElementById("offset").value);
+    const first = parseFloat(document.getElementById("firstBoard").value);
+    const last = parseFloat(document.getElementById("lastBoard").value);
+
+    const { positions, spaceWidth } = calculateSpacing(sectionWidth, boardWidth, numberOfBoards, numberOfSpaces, offset);
+    const boardLengths = calculateLengths(first, last, numberOfBoards);
 
     renderResult(positions, spaceWidth, boardLengths);
 }
@@ -122,4 +127,8 @@ function transpose(a) {
     return Object.keys(a[0]).map(function(c) {
         return a.map(function(r) { return r[c]; });
     });
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = { calculateSpacing, calculateLengths };
 }
